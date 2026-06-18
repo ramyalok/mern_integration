@@ -1,0 +1,45 @@
+{
+  "username": "ramya",
+  "email": "ramya@gmail.com",
+  "password": "ram123",
+  "role": "admin"
+}
+{
+ "username": "Dharshu",
+  "email": "Dharshu@gmail.com",
+  "password": "Dharshu123"
+ "role": "admin"
+}
+{
+  "username": "loki",
+  "email": "loki@gmail.com",
+  "password": "loki123",
+  "role": "user"
+}
+//post -localhost:4000/users/register  localhost:4000/users/login
+// get  - http://localhost:4000/userProfile/getprofile //both view admin/user
+ 
+ """ADMINNNNN""
+//create customer ,update,delete customer -- post put delete --- only ADMIN
+ {
+ "customerName":"kumar",
+  "email":"kumar@gmail.com",
+  "phone":"6756753233",
+  "company":"TidlePark",
+  "address":"coimbatore",
+  "status": "inactive"  
+  }
+  //     1st server endpoint + 2nd router endpoint
+// post - localhost:4000/customer/create
+//put --localhost:4000/customer/6a30f86a9451894605015584
+//delete -localhost:4000/customer/6a303ce187f72eba5a2dff16
+
+
+""""USER+ADMIN""""
+//get  - http://localhost:4000/customer              //view user/admin
+//get - http://localhost:4000/customer/search       //view  user/admin
+//get  - http://localhost:4000/customer/6a30f86a9451894605015584 //get by customer id
+//get - localhost:4000/customer/search?company=tcs
+//get - localhost:4000/customer/search?address=chennai
+//get - localhost:4000/customer/search?search=Arun
+//get - customers/search?sort=customerName

@@ -1,0 +1,531 @@
+frontend
+1.npm create vite@latest my_app
+2.npm install tailwindcss @tailwindcss/vite
+2.npm i axios
+3.npm i react-router-dom
+
+/              → Login
+
+/register      → Register
+
+/profile       → Logged in user profile
+
+/customers     → View customer list
+
+/dashboard     → Admin only
+
+/*             → Not found
+
+
+//Yes — the actual authentication logic works in the backend, but your frontend triggers it and stores the result.
+
+Flow:
+
+Frontend (AuthRegLog.jsx)
+        ↓
+POST /users/login
+        ↓
+Backend validates email + password
+        ↓
+Backend generates JWT token
+        ↓
+Backend sends token
+        ↓
+Frontend stores token
+        ↓
+Frontend sends token in future requests
+        ↓
+Backend verifies token
+
+Frontend just attaches token. Backend checks token.
+
+Login validation → Backend
+Token generation → Backend
+Store token → Frontend
+Attach token → Frontend
+Verify token → Backend
+
+1.STEP 1 — Register
+1.utils/ApiAuth.js--export const registerUser =(data)=>API.post("/users/register",data);--data receive register form values
+{
+ username:"ramya",
+ email:"ram@gmail.com",
+ password:"123",
+ role:"admin"
+}---API.post() send post requests
+
+2. pages/AuthRegLog.jsx-----Create register function.---const register = async () => {}
+const res =
+await registerUser({
+ username:form.username,
+ email:form.email,
+ password:form.password,
+ role:form.role
+});
+{
+ "username":"ramya",
+ "email":"ram@gmail.com",
+ "password":"123",
+ "role":"admin"
+}
+3.Backend → routes/auth.routes.js(controller login register )// Route receives request. router.post("/register",register);
+4. Backend → controller/auth.controller.js--->exports.register =async(req,res)=>{}---Start register logic.//receive the register data from register form in frontend
+5. const user=await User.create({username,email,password,role})---Save to MongoDB.--store in DB {id:1,username:password,email,role}
+
+6.STEP 2 — Login
+Frontend → AuthRegLog.jsx---const res=await loginUser({ email:form.email, password:form.password});
+Send:like this
+{
+ "email":"ram@gmail.com",
+ "password":"123"
+}
+7.Frontend → ApiAuth.js
+export const loginUser = (data) => API.post("/users/login", data);//POST /users/login ---requesting
+8.Backend → routes/auth.routes.js--router.post("/login",login);
+9.Backend → controller/auth.controller.js --Find user:const user=await User.findOne({email});
+10.check password and If found {"_id":"1","role":"admin"}
+11.Generate JWT:const token=
+jwt.sign({ id:user._id, role:user.role},SECRET);
+12.Token contains:{"id":"1","role":"admin"}
+13.Send response:res.json({token,data:user});
+14.Backend returns:{"token":"abc123","data":{ "role":"admin"}}
+
+15.STEP 3 — Store Token
+16.frontend → AuthRegLog.jsx
+localStorage.setItem("token",res.data.token);  save token=abc123
+localStorage.setItem("role",res.data.data.role); save role=admin
+
+17.STEP 4 — Auto Attach Token
+Frontend → utils/ApiAuth.js
+API.interceptors.request.use((config)=>{})
+Runs before request.
+
+Get token:
+const token=localStorage.getItem("token");
+Attach:
+config.headers.Authorization=
+`Bearer ${token}`;
+
+Request becomes:
+
+GET /users/getprofile
+
+Authorization:
+Bearer abc123 
+
+18.STEP 5 — Verify Token
+Backend → middleware/authmiddleware.js
+
+Read header:
+
+const token=
+req.header(
+"Authorization"
+);
+
+Remove Bearer:token.replace("Bearer ","");
+Verify:const decoded=jwt.verify(token,SECRET);
+Result:
+{
+"id":"1",
+"role":"admin"
+}
+
+Store:
+
+req.user=
+decoded;
+
+
+//Frontend (React)
+      ↓
+API Layer (Axios)
+      ↓
+Backend Route
+      ↓
+Controller
+      ↓
+Database (MongoDB)
+      ↓
+JWT Authentication
+      ↓
+Protected Pages
+STEP 1 — User Opens Register Page
+File
+Frontend
+pages/AuthRegLog.jsx
+
+User enters:
+
+Username : Ramya
+Email    : ram@gmail.com
+Password : 123
+Role     : admin
+
+Stored in:
+
+const [form,setForm]
+
+Current state:
+
+{
+ username:"Ramya",
+ email:"ram@gmail.com",
+ password:"123",
+ role:"admin"
+}
+STEP 2 — User Clicks Register
+File
+AuthRegLog.jsx
+
+Runs:
+
+register()
+
+Code:
+
+await registerUser({
+ username:form.username,
+ email:form.email,
+ password:form.password,
+ role:form.role
+});
+
+Data sent:
+
+{
+ "username":"Ramya",
+ "email":"ram@gmail.com",
+ "password":"123",
+ "role":"admin"
+}
+STEP 3 — ApiAuth Sends Request
+File
+Frontend
+utils/ApiAuth.js
+
+Code:
+
+export const registerUser=
+(data)=>
+API.post(
+"/users/register",
+data
+)
+
+Axios creates:
+
+POST http://localhost:4000/users/register
+
+Body:
+
+{
+ "username":"Ramya",
+ "email":"ram@gmail.com",
+ "password":"123",
+ "role":"admin"
+}
+STEP 4 — Backend Route Receives
+File
+Backend
+routes/auth.routes.js
+
+Route:
+
+router.post(
+"/register",
+register
+)
+
+Request enters controller.
+
+STEP 5 — Controller Creates User
+File
+Backend
+controller/auth.controller.js
+
+Receive:
+
+req.body
+
+Result:
+
+{
+ username:"Ramya",
+ email:"ram@gmail.com",
+ password:"123",
+ role:"admin"
+}
+
+Hash password:
+
+bcrypt.hash()
+
+Save:
+
+await User.create()
+
+MongoDB:
+
+{
+ "_id":"100",
+ "username":"Ramya",
+ "email":"ram@gmail.com",
+ "password":"hashed",
+ "role":"admin"
+}
+
+Return:
+
+{
+ "message":"Register Success"
+}
+STEP 6 — User Goes To Login
+File
+Frontend
+AuthRegLog.jsx
+
+Input:
+
+Email
+Password
+
+Click:
+
+Login
+
+Runs:
+
+login()
+STEP 7 — Login Request
+
+Code:
+
+await loginUser({
+ email:form.email,
+ password:form.password
+})
+
+Sent:
+
+POST /users/login
+
+Body:
+
+{
+ "email":"ram@gmail.com",
+ "password":"123"
+}
+STEP 8 — Backend Validates Login
+File
+controller/auth.controller.js
+
+Find:
+
+User.findOne({
+ email
+})
+
+Check password:
+
+bcrypt.compare()
+
+If correct:
+
+Generate token:
+
+jwt.sign(
+{
+ id:user._id,
+ role:user.role
+},
+SECRET
+)
+
+Generated:
+
+eyJhbGci...
+
+Return:
+
+{
+ "token":"abc123",
+ "data":{
+   "role":"admin"
+ }
+}
+STEP 9 — Frontend Stores Token
+File
+AuthRegLog.jsx
+
+Store:
+
+localStorage
+.setItem(
+"token",
+res.data.token
+)
+
+Store role:
+
+localStorage
+.setItem(
+"role",
+res.data.data.role
+)
+
+Browser:
+
+token=abc123
+role=admin
+STEP 10 — User Opens Profile / Customer
+
+Example:
+
+API.get(
+"/users/getprofile"
+)
+
+or
+
+API.get(
+"/customer"
+)
+STEP 11 — ApiAuth Auto Adds Token
+File
+utils/ApiAuth.js
+
+Interceptor:
+
+API.interceptors
+.request.use()
+
+Reads:
+
+localStorage
+.getItem(
+"token"
+)
+
+Attach:
+
+Authorization:
+Bearer abc123
+
+Request:
+
+GET /customer
+Authorization:
+Bearer abc123
+STEP 12 — Backend Verifies Token
+File
+middleware/authmiddleware.js
+
+Read:
+
+req.headers
+.authorization
+
+Extract:
+
+token
+
+Verify:
+
+jwt.verify()
+
+Decoded:
+
+{
+"id":"100",
+"role":"admin"
+}
+
+Store:
+
+req.user
+STEP 13 — Controller Uses Logged User
+
+Example:
+
+exports.getProfile=
+(req,res)=>{
+
+res.json({
+user:req.user
+})
+
+}
+
+Response:
+
+{
+"user":{
+"id":"100",
+"role":"admin"
+}
+}
+STEP 14 — Frontend Shows Page
+
+Profile:
+
+Name
+Email
+Role
+
+Customer:
+
+Admin
+→ Add Edit Delete
+
+User
+→ View only
+Final Flow Diagram
+REGISTER
+
+React Form
+↓
+ApiAuth
+↓
+Route
+↓
+Controller
+↓
+MongoDB
+
+
+LOGIN
+
+React Form
+↓
+ApiAuth
+↓
+Route
+↓
+Controller
+↓
+Validate
+↓
+Generate JWT
+↓
+Store Token
+
+
+PROTECTED PAGE
+
+Profile/Customer
+↓
+Axios Interceptor
+↓
+Authorization Header
+↓
+Auth Middleware
+↓
+Verify JWT
+↓
+req.user
+↓
+Controller
+↓
+Frontend UI
+

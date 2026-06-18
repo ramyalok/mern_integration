@@ -1,0 +1,224 @@
+This function:
+
+const change = (e) => {
+  const { name, value, checked, type } = e.target;
+
+  setForm({
+    ...form,
+    [name]: type === "checkbox" ? checked : value,
+  });
+};
+
+Its job is:
+
+👉 Whenever user types or clicks, update the form state automatically.
+
+Step 1 — Current form state
+
+Initially:
+
+form = {
+ username: "",
+ email: "",
+ password: "",
+ role: "user",
+ remember: false
+}
+
+Think of form as a box storing all input values.
+
+Step 2 — User types something
+
+Suppose user types:
+
+<input
+ name="email"
+ value="ram@gmail.com"
+/>
+
+React triggers:
+
+onChange={change}
+
+So:
+
+change(e)
+
+runs.
+
+Step 3 — What is e?
+
+e = event object
+
+React gives details about the input.
+
+Example:
+
+e.target={
+ name:"email",
+ value:"ram@gmail.com",
+ type:"email"
+}
+Step 4 — Destructuring
+
+This line:
+
+const { name, value, checked, type } = e.target;
+
+means:
+
+Instead of writing:
+
+const name=e.target.name
+const value=e.target.value
+const checked=e.target.checked
+const type=e.target.type
+
+we shorten it.
+
+Result:
+
+name="email"
+value="ram@gmail.com"
+type="email"
+checked=undefined
+Step 5 — setForm()
+
+Now:
+
+setForm({
+ ...form,
+ [name]: type==="checkbox"
+ ? checked
+ : value
+})
+
+looks scary but is simple.
+
+Assume old form:
+
+form={
+ username:"",
+ email:"",
+ password:""
+}
+
+...form
+
+copies old data:
+
+{
+ username:"",
+ email:"",
+ password:""
+}
+
+Then:
+
+[name]:value
+
+means:
+
+email:"ram@gmail.com"
+
+because:
+
+name="email"
+
+Final state:
+
+form={
+ username:"",
+ email:"ram@gmail.com",
+ password:""
+}
+
+Only email changed.
+
+Another Example — Password
+
+User enters:
+
+<input name="password">
+
+Types:
+
+12345
+
+Event:
+
+name="password"
+value="12345"
+
+Result:
+
+form={
+ username:"",
+ email:"ram@gmail.com",
+ password:"12345"
+}
+Checkbox Example (Remember Me)
+
+Input:
+
+<input
+ type="checkbox"
+ name="remember"
+/>
+
+User checks it.
+
+Event:
+
+name="remember"
+type="checkbox"
+checked=true
+
+This line:
+
+type==="checkbox"
+ ? checked
+ : value
+
+becomes:
+
+remember:true
+
+Final:
+
+form={
+ username:"",
+ email:"ram@gmail.com",
+ password:"12345",
+ remember:true
+}
+Why use [name]?
+
+Because one function handles all inputs.
+
+Without [name], you'd need:
+
+setEmail(...)
+setPassword(...)
+setUsername(...)
+setRemember(...)
+
+With this:
+
+onChange={change}
+
+every input updates automatically.
+
+So mentally read this function as:
+
+User changes input
+       ↓
+Get input name
+       ↓
+Get input value
+       ↓
+Update only that field
+       ↓
+Save into form state
+
+This pattern is called a generic form handler in React.
