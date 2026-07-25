@@ -19,7 +19,7 @@ module.exports = async (req, res, next) => {
 
     if (!user) {
       return res.status(401).json({
-        message: "User not found after login check",
+        message: "User not found after login token verified(someothersToken)",
       });
     }
     console.log(decoded); //iam decoded id  { id: '6a2c47cb2be72542423f4144', iat: 1781351678, exp: 1781956478 }

@@ -23,6 +23,7 @@ exports.register = async (req, res) => {
       message: "User registered successfully",
       success: true,
       //register person and hide password from api response not from database(internally check hashed password)
+      //data: newuser//to make clear data:{id,username,email,role}
       data: {
         id: newuser._id,
         username: newuser.username,

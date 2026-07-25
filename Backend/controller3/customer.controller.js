@@ -4,6 +4,23 @@ const customerModel = require("../model2/customer");
 
 exports.createcustomer = async (req, res) => {
   try {
+// customer details entered from frontend
+const { email, phone } = req.body;
+// check existing customer
+const existingCustomer =
+  await customerModel.findOne({
+    $or: [
+      { email },
+      { phone }
+    ]
+  });
+if (existingCustomer) {
+  return res.status(400).json({
+    success: false,
+    message: "Customer already exists"
+  });
+}
+// create only if not exists
     const newcustomer = await customerModel.create(req.body);
     res.status(201).json({
       success: true,
@@ -14,6 +31,13 @@ exports.createcustomer = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+// Only admin can create customer.Users can view.That means access control is handled by auth middleware + role check, not by createdBy.So this is enough:
+// await customerModel.create(req.body);because customer is a shared resource.Example:
+// Admin A creates customer
+// ↓
+// Customer stored
+// ↓
+// All users can view //You don't need:createdBy  //because ownership is not important.
 
 exports.getcustomers = async (req, res) => {
   try {
